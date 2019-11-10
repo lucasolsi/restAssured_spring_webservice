@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
@@ -31,9 +32,11 @@ class UsersWebserviceEndpointTest {
 
 	private static String responseUserId;
 
-	private final String newFirstName = "New User";
+	private final String newFirstName = "Maybe an";
 
-	private final String newLastName = "Test";
+	private final String newLastName = "Error";
+
+	private final String newEmail = "cskobxrr@grr.la";
 
 	private static List<Map<String, String>> addresses;
 
@@ -87,15 +90,16 @@ class UsersWebserviceEndpointTest {
 
 	}
 
-
 	// Not working
 	@Test
 	@Order(3)
-	void testUpdateUserDetails() {
+	final void testUpdateUserDetails() {
 
 		Map<String, Object> userDetails = new HashMap<>();
-		userDetails.put("firstName", "New User");
-		userDetails.put("lastName", "Test");
+		userDetails.put("firstName", newFirstName);
+		userDetails.put("lastName", newLastName);
+		// userDetails.put("email", newEmail);
+		// userDetails.put("password", PASSWORD);
 
 		Response response = given().contentType(JSON_CONTENT).accept(JSON_CONTENT).header("Authorization", authHeader)
 				.pathParam("id", responseUserId).body(userDetails).when().put(CONTEXT_PATH + "/users/{id}").then()
@@ -103,13 +107,28 @@ class UsersWebserviceEndpointTest {
 
 		String firstName = response.jsonPath().getString("firstName");
 		String lastName = response.jsonPath().getString("lastName");
+//		String email = response.jsonPath().getString("email");
 
 		List<Map<String, String>> storedAddresses = response.jsonPath().getList("addresses");
 
 		assertEquals(newFirstName, firstName);
 		assertEquals(newLastName, lastName);
+		// assertEquals(newEmail, email);
 		assertNotNull(storedAddresses);
 		assertTrue(addresses.size() == storedAddresses.size());
-		assertEquals(addresses.get(0).get("streetName"),storedAddresses.get(0).get("streetName"));
+		assertEquals(addresses.get(0).get("streetName"), storedAddresses.get(0).get("streetName"));
+	}
+
+	@Test
+	@Disabled
+	@Order(4)
+	final void testDeleteUser() {
+
+		Response response = given().accept(JSON_CONTENT).header("Authorization", authHeader)
+				.pathParam("id", responseUserId).when().delete(CONTEXT_PATH + "/users/{id}").then().statusCode(200)
+				.contentType(JSON_CONTENT).extract().response();
+
+		String operationResult = response.jsonPath().getString("operationResult");
+		assertEquals("SUCCESS", operationResult);
 	}
 }
